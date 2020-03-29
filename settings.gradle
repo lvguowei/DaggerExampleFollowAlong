@@ -1,0 +1,2 @@
+rootProject.name='DaggerExampleFollowAlong'
+include ':app'
