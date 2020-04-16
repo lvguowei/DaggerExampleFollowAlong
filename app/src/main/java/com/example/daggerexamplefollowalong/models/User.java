@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class User {
+
     @SerializedName("id")
     @Expose
     private int id;
@@ -25,6 +26,9 @@ public class User {
         this.username = username;
         this.email = email;
         this.website = website;
+    }
+
+    public User() {
     }
 
     public int getId() {

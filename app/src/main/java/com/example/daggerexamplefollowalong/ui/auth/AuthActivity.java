@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import android.widget.ProgressBar;
+import android.widget.Toast;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -28,6 +30,8 @@ public class AuthActivity extends DaggerAppCompatActivity {
 
     private EditText userIdEditText;
 
+    private ProgressBar progressBar;
+
     @Inject
     ViewModelProviderFactory viewModelProviderFactory;
 
@@ -44,6 +48,8 @@ public class AuthActivity extends DaggerAppCompatActivity {
 
         userIdEditText = findViewById(R.id.user_id_input);
 
+        progressBar = findViewById(R.id.progress_bar);
+
         findViewById(R.id.login_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -58,14 +64,40 @@ public class AuthActivity extends DaggerAppCompatActivity {
     }
 
     private void subscribeObservers() {
-        viewModel.user().observe(this, new Observer<User>() {
+        viewModel.user().observe(this, new Observer<AuthResource<User>>() {
             @Override
-            public void onChanged(User user) {
-                if (user != null) {
-                    Log.d(TAG, "onChanged: " + user.getUsername());
+            public void onChanged(AuthResource<User> userAuthResource) {
+                if (userAuthResource != null) {
+                    switch (userAuthResource.status) {
+                        case LOADING:
+                            showProgressBar(true);
+                            break;
+                        case AUTHENTICATED:
+                            showProgressBar(false);
+                            break;
+                        case NOT_AUTHENTICATED:
+                            showProgressBar(false);
+                            break;
+                        case ERROR:
+                            showProgressBar(false);
+                            Toast.makeText(AuthActivity.this, userAuthResource.message,
+                                Toast.LENGTH_SHORT)
+                                .show();
+                            break;
+                        default:
+
+                    }
                 }
             }
         });
+    }
+
+    private void showProgressBar(boolean isVisible) {
+        if (isVisible) {
+            progressBar.setVisibility(View.VISIBLE);
+        } else {
+            progressBar.setVisibility(View.GONE);
+        }
     }
 
     private void attemptLogin() {
