@@ -2,39 +2,37 @@ package com.example.daggerexamplefollowalong.ui.auth;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.LiveDataReactiveStreams;
-import androidx.lifecycle.MediatorLiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
-
+import com.example.daggerexamplefollowalong.SessionManager;
 import com.example.daggerexamplefollowalong.models.User;
 import com.example.daggerexamplefollowalong.network.auth.AuthApi;
-
 import io.reactivex.functions.Function;
-import javax.inject.Inject;
-
 import io.reactivex.schedulers.Schedulers;
+import javax.inject.Inject;
 
 
 public class AuthViewModel extends ViewModel {
 
-    private static final String TAG = "AuthViewModel";
-
     private final AuthApi authApi;
 
-    private MediatorLiveData<AuthResource<User>> authUser = new MediatorLiveData<>();
+    private SessionManager sessionManager;
 
     @Inject
-    AuthViewModel(AuthApi authApi) {
+    AuthViewModel(AuthApi authApi, SessionManager sessionManager) {
         this.authApi = authApi;
+        this.sessionManager = sessionManager;
     }
 
     void authenticateWith(int userId) {
-        authUser.setValue(AuthResource.<User>loading(null));
-        final LiveData<AuthResource<User>> source = LiveDataReactiveStreams.fromPublisher(
+        sessionManager.authenticateWithId(queryUserId(userId));
+    }
+
+    private LiveData<AuthResource<User>> queryUserId(int userId) {
+        return LiveDataReactiveStreams.fromPublisher(
             authApi.getUser(userId)
                 .onErrorReturn(new Function<Throwable, User>() {
                     @Override
-                    public User apply(Throwable throwable) throws Exception {
+                    public User apply(Throwable throwable) {
                         User errorUser = new User();
                         errorUser.setId(-1);
                         return errorUser;
@@ -42,7 +40,7 @@ public class AuthViewModel extends ViewModel {
                 })
                 .map(new Function<User, AuthResource<User>>() {
                     @Override
-                    public AuthResource<User> apply(User user) throws Exception {
+                    public AuthResource<User> apply(User user) {
                         if (user.getId() == -1) {
                             return AuthResource.error("Could not authenticate", null);
                         }
@@ -52,16 +50,9 @@ public class AuthViewModel extends ViewModel {
                 .subscribeOn(Schedulers.io())
 
         );
-
-        authUser.addSource(source, new Observer<AuthResource<User>>() {
-            @Override
-            public void onChanged(AuthResource<User> user) {
-                authUser.setValue(user);
-            }
-        });
     }
 
-    LiveData<AuthResource<User>> user() {
-        return authUser;
+    LiveData<AuthResource<User>> observeAuthState() {
+        return sessionManager.getAuthUser();
     }
 }

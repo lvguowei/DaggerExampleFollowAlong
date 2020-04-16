@@ -3,6 +3,7 @@ package com.example.daggerexamplefollowalong.di;
 import android.app.Application;
 
 import com.example.daggerexamplefollowalong.BaseApplication;
+import com.example.daggerexamplefollowalong.SessionManager;
 import com.example.daggerexamplefollowalong.viewmodels.ViewModelProviderFactory;
 
 import javax.inject.Singleton;
@@ -19,6 +20,8 @@ import dagger.android.support.AndroidSupportInjectionModule;
         AppModule.class,
         ViewModelFactoryModule.class})
 public interface AppComponent extends AndroidInjector<BaseApplication> {
+
+    SessionManager sessionManager();
 
     @Component.Factory
     interface Factory {

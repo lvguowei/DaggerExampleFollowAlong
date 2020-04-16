@@ -1,5 +1,6 @@
 package com.example.daggerexamplefollowalong.ui.auth;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -16,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.RequestManager;
 import com.example.daggerexamplefollowalong.R;
 import com.example.daggerexamplefollowalong.models.User;
+import com.example.daggerexamplefollowalong.ui.main.MainActivity;
 import com.example.daggerexamplefollowalong.viewmodels.ViewModelProviderFactory;
 
 import javax.inject.Inject;
@@ -64,7 +66,7 @@ public class AuthActivity extends DaggerAppCompatActivity {
     }
 
     private void subscribeObservers() {
-        viewModel.user().observe(this, new Observer<AuthResource<User>>() {
+        viewModel.observeAuthState().observe(this, new Observer<AuthResource<User>>() {
             @Override
             public void onChanged(AuthResource<User> userAuthResource) {
                 if (userAuthResource != null) {
@@ -74,6 +76,7 @@ public class AuthActivity extends DaggerAppCompatActivity {
                             break;
                         case AUTHENTICATED:
                             showProgressBar(false);
+                            onLoginSuccess();
                             break;
                         case NOT_AUTHENTICATED:
                             showProgressBar(false);
@@ -90,6 +93,12 @@ public class AuthActivity extends DaggerAppCompatActivity {
                 }
             }
         });
+    }
+
+    private void onLoginSuccess() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void showProgressBar(boolean isVisible) {
